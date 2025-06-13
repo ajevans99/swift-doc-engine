@@ -2,15 +2,20 @@ import Markdown
 import MarkdownSupport
 
 // MARK: - Lint entry
-public enum MarkdownLinter {
+public final class MarkdownLinter {
+    private let ruleRegistry: RuleRegistry
+
+    public init(ruleRegistry: RuleRegistry) {
+        self.ruleRegistry = ruleRegistry
+    }
+
     @MainActor
-    public static func lint(_ markdown: String,
-                            config: [String: AnyCodable] = [:]) -> [Diagnostic] {
+    public func lint(_ markdown: String) -> [Diagnostic] {
         let document = Document(parsing: markdown)
         let index = MarkdownSupport.buildIndex(document: document, text: markdown)
-        let context = LintContext(text: markdown, ast: document, index: index, configuration: config)
+        let context = LintContext(text: markdown, ast: document, index: index)
         var diagnostics: [Diagnostic] = []
-        for rule in RuleRegistry.shared.activeRules {
+        for rule in ruleRegistry.activeRules {
             diagnostics.append(contentsOf: rule.validate(document: document, index: index, context: context))
         }
         return diagnostics

@@ -1,14 +1,18 @@
 import Markdown
 import MarkdownSupport
 
-struct RequiredHeadingRule: LintRule {
-    static let id = "required_heading"
-    static let description = "Required headings must exist"
+public struct RequiredHeadingRule: LintRule {
+    public static let id = "required_heading"
+    public static let description = "Required headings must exist"
 
-    func validate(document: Document, index: ASTIndex, context: LintContext) -> [Diagnostic] {
-        guard let arr = context.configuration["requiredHeadings"]?.value as? [String], !arr.isEmpty else { return [] }
+    public let headings: [String]
+
+    public init(headings: [String]) { self.headings = headings }
+
+    public func validate(document: Document, index: ASTIndex, context: LintContext) -> [Diagnostic] {
+        guard !headings.isEmpty else { return [] }
         let range = document.range ?? SourceRange(start: .init(line: 1, column: 1, source: nil), end: .init(line: 1, column: 1, source: nil))
-        return arr.compactMap { slug in
+        return headings.compactMap { slug in
             let exists = index.headingRanges.keys.contains { $0.last == slug }
             return exists ? nil : Diagnostic(
                 severity: .error,
@@ -19,11 +23,11 @@ struct RequiredHeadingRule: LintRule {
     }
 }
 
-struct UniqueHeadingTitlesRule: LintRule {
-    static let id = "unique_heading_titles"
-    static let description = "Headings must be unique at the same depth"
+public struct UniqueHeadingTitlesRule: LintRule {
+    public static let id = "unique_heading_titles"
+    public static let description = "Headings must be unique at the same depth"
 
-    func validate(document: Document, index: ASTIndex, context: LintContext) -> [Diagnostic] {
+    public func validate(document: Document, index: ASTIndex, context: LintContext) -> [Diagnostic] {
         var walker = DuplicateWalker()
         walker.visit(document)
         return walker.diagnostics
@@ -52,14 +56,18 @@ struct UniqueHeadingTitlesRule: LintRule {
     }
 }
 
-struct AllowedFencedTagsRule: LintRule {
-    static let id = "allowed_fenced_tags"
-    static let description = "Allowed fenced block tags"
+public struct AllowedFencedTagsRule: LintRule {
+    public static let id = "allowed_fenced_tags"
+    public static let description = "Allowed fenced block tags"
 
-    func validate(document: Document, index: ASTIndex, context: LintContext) -> [Diagnostic] {
-        guard let tags = context.configuration["allowedTags"]?.value as? [String], !tags.isEmpty else { return [] }
+    public let allowedTags: [String]
+
+    public init(allowedTags: [String]) { self.allowedTags = allowedTags }
+
+    public func validate(document: Document, index: ASTIndex, context: LintContext) -> [Diagnostic] {
+        guard !allowedTags.isEmpty else { return [] }
         var diags: [Diagnostic] = []
-        var walker = CodeWalker(tags: Set(tags)) { block in
+        var walker = CodeWalker(tags: Set(allowedTags)) { block in
             if let range = block.range {
                 diags.append(Diagnostic(severity: .error, message: "Disallowed fenced block tag \"\(block.language ?? "")\"", range: range, ruleID: Self.id))
             }
@@ -77,11 +85,11 @@ struct AllowedFencedTagsRule: LintRule {
     }
 }
 
-struct NoEmptySectionRule: LintRule {
-    static let id = "no_empty_section"
-    static let description = "Headings must contain body text"
+public struct NoEmptySectionRule: LintRule {
+    public static let id = "no_empty_section"
+    public static let description = "Headings must contain body text"
 
-    func validate(document: Document, index: ASTIndex, context: LintContext) -> [Diagnostic] {
+    public func validate(document: Document, index: ASTIndex, context: LintContext) -> [Diagnostic] {
         var diagnostics: [Diagnostic] = []
         for (path, span) in index.map {
             guard path.count > 0, let headingRange = index.headingRanges[path] else { continue }

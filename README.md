@@ -29,18 +29,22 @@ Selectors address headings using slugged text. Fenced code blocks can be accesse
 
 ## MarkdownLintKit
 
-`MarkdownLintKit` exposes a lightweight linter for Markdown documents. Register
-the built‑in rules and run the linter on a string to inspect diagnostics:
+`MarkdownLintKit` exposes a lightweight linter for Markdown documents.
+Create a registry with the rules you want to run and pass it to a
+`MarkdownLinter` instance:
 
 ```swift
-RuleRegistry.shared.registerBuiltInRules()
-let diagnostics = MarkdownLinter.lint(markdown, config: [
-    "requiredHeadings": ["visual-design", "abilities"],
-    "allowedTags": ["prompt", "notes", "meta"]
+let ruleRegistry = RuleRegistry(rules: [
+    RequiredHeadingRule(headings: ["visual-design", "abilities"]),
+    UniqueHeadingTitlesRule(),
+    AllowedFencedTagsRule(allowedTags: ["prompt", "notes", "meta"]),
+    NoEmptySectionRule()
 ])
+let linter = MarkdownLinter(ruleRegistry: ruleRegistry)
+let diagnostics = linter.lint(markdown)
 ```
 
-Custom rules can be registered via `RuleRegistry`.
+Custom rules can be registered using `ruleRegistry.register(MyRule())`.
 
 ## License
 

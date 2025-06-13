@@ -9,42 +9,47 @@ struct MarkdownLintKitTests {
         guard let url = Bundle.module.url(forResource: "valid", withExtension: "md", subdirectory: "Fixtures") else {
             throw NSError(domain: "", code: 1)
         }
-        RuleRegistry.shared.reset()
-        RuleRegistry.shared.registerBuiltInRules()
-        let text = try String(contentsOf: url, encoding: .utf8)
-        let diags = MarkdownLinter.lint(text, config: [
-            "requiredHeadings": AnyCodable(["visual-design", "abilities"]),
-            "allowedTags": AnyCodable(["prompt", "notes", "meta"])
+        let registry = RuleRegistry(rules: [
+            RequiredHeadingRule(headings: ["visual-design", "abilities"]),
+            UniqueHeadingTitlesRule(),
+            AllowedFencedTagsRule(allowedTags: ["prompt", "notes", "meta"]),
+            NoEmptySectionRule()
         ])
+        let linter = MarkdownLinter(ruleRegistry: registry)
+        let text = try String(contentsOf: url, encoding: .utf8)
+        let diags = linter.lint(text)
         _ = MarkdownSupport.buildIndex(document: Document(parsing: text), text: text)
         #expect(diags.isEmpty)
     }
 
     @MainActor @Test func duplicateHeading() async throws {
-        RuleRegistry.shared.reset()
-        RuleRegistry.shared.registerBuiltInRules()
+        let registry = RuleRegistry(rules: [
+            UniqueHeadingTitlesRule()
+        ])
+        let linter = MarkdownLinter(ruleRegistry: registry)
         let md = "# Story\n\n## Panel 2\n\nText\n\n## Panel 2\nMore"
-        let diags = MarkdownLinter.lint(md)
+        let diags = linter.lint(md)
         #expect(diags.count == 1)
         #expect(diags.first?.ruleID == "unique_heading_titles")
     }
 
     @MainActor @Test func disallowedTag() async throws {
-        RuleRegistry.shared.reset()
-        RuleRegistry.shared.registerBuiltInRules()
-        let md = "# Title\n\n```mermaid\ngraph TD\n```"
-        let diags = MarkdownLinter.lint(md, config: [
-            "allowedTags": AnyCodable(["prompt", "notes", "meta"])
+        let registry = RuleRegistry(rules: [
+            AllowedFencedTagsRule(allowedTags: ["prompt", "notes", "meta"])
         ])
+        let linter = MarkdownLinter(ruleRegistry: registry)
+        let md = "# Title\n\n```mermaid\ngraph TD\n```"
+        let diags = linter.lint(md)
         #expect(diags.count == 1)
         #expect(diags.first?.ruleID == "allowed_fenced_tags")
     }
 
     @MainActor @Test func customRule() async throws {
-        RuleRegistry.shared.reset()
-        RuleRegistry.shared.registerBuiltInRules()
-        RuleRegistry.shared.register(NoBanEmojiRule())
-        let diags = MarkdownLinter.lint("# Title\nThis 🚫 should fail.")
+        let registry = RuleRegistry(rules: [
+            NoBanEmojiRule()
+        ])
+        let linter = MarkdownLinter(ruleRegistry: registry)
+        let diags = linter.lint("# Title\nThis 🚫 should fail.")
         #expect(diags.count == 1)
         #expect(diags.first?.ruleID == "no_ban_emoji")
     }
