@@ -1,4 +1,5 @@
 import Markdown
+import MarkdownSupport
 
 struct RequiredHeadingRule: LintRule {
     static let id = "required_heading"
@@ -8,7 +9,12 @@ struct RequiredHeadingRule: LintRule {
         guard let arr = context.configuration["requiredHeadings"]?.value as? [String], !arr.isEmpty else { return [] }
         let range = document.range ?? SourceRange(start: .init(line: 1, column: 1, source: nil), end: .init(line: 1, column: 1, source: nil))
         return arr.compactMap { slug in
-            index[[slug]] == nil ? Diagnostic(severity: .error, message: "Missing required heading \"\(slug)\"", range: range, ruleID: Self.id) : nil
+            let exists = index.headingRanges.keys.contains { $0.last == slug }
+            return exists ? nil : Diagnostic(
+                severity: .error,
+                message: "Missing required heading \"\(slug)\"",
+                range: range,
+                ruleID: Self.id)
         }
     }
 }

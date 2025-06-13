@@ -1,6 +1,7 @@
 import Foundation
 import Markdown
 import Testing
+import MarkdownSupport
 @testable import MarkdownLintKit
 
 struct MarkdownLintKitTests {
@@ -8,15 +9,20 @@ struct MarkdownLintKitTests {
         guard let url = Bundle.module.url(forResource: "valid", withExtension: "md", subdirectory: "Fixtures") else {
             throw NSError(domain: "", code: 1)
         }
+        RuleRegistry.shared.reset()
+        RuleRegistry.shared.registerBuiltInRules()
         let text = try String(contentsOf: url, encoding: .utf8)
         let diags = MarkdownLinter.lint(text, config: [
             "requiredHeadings": AnyCodable(["visual-design", "abilities"]),
             "allowedTags": AnyCodable(["prompt", "notes", "meta"])
         ])
+        _ = MarkdownSupport.buildIndex(document: Document(parsing: text), text: text)
         #expect(diags.isEmpty)
     }
 
     @MainActor @Test func duplicateHeading() async throws {
+        RuleRegistry.shared.reset()
+        RuleRegistry.shared.registerBuiltInRules()
         let md = "# Story\n\n## Panel 2\n\nText\n\n## Panel 2\nMore"
         let diags = MarkdownLinter.lint(md)
         #expect(diags.count == 1)
@@ -24,6 +30,8 @@ struct MarkdownLintKitTests {
     }
 
     @MainActor @Test func disallowedTag() async throws {
+        RuleRegistry.shared.reset()
+        RuleRegistry.shared.registerBuiltInRules()
         let md = "# Title\n\n```mermaid\ngraph TD\n```"
         let diags = MarkdownLinter.lint(md, config: [
             "allowedTags": AnyCodable(["prompt", "notes", "meta"])
@@ -33,6 +41,8 @@ struct MarkdownLintKitTests {
     }
 
     @MainActor @Test func customRule() async throws {
+        RuleRegistry.shared.reset()
+        RuleRegistry.shared.registerBuiltInRules()
         RuleRegistry.shared.register(NoBanEmojiRule())
         let diags = MarkdownLinter.lint("# Title\nThis 🚫 should fail.")
         #expect(diags.count == 1)

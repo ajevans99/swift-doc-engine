@@ -1,4 +1,5 @@
 import Markdown
+import MarkdownSupport
 
 // MARK: - LintRule
 public protocol LintRule {

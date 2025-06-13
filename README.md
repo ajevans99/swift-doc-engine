@@ -29,10 +29,11 @@ Selectors address headings using slugged text. Fenced code blocks can be accesse
 
 ## MarkdownLintKit
 
-`MarkdownLintKit` exposes a lightweight linter for Markdown documents. Run the
-linter on a string and inspect the returned diagnostics:
+`MarkdownLintKit` exposes a lightweight linter for Markdown documents. Register
+the built‑in rules and run the linter on a string to inspect diagnostics:
 
 ```swift
+RuleRegistry.shared.registerBuiltInRules()
 let diagnostics = MarkdownLinter.lint(markdown, config: [
     "requiredHeadings": ["visual-design", "abilities"],
     "allowedTags": ["prompt", "notes", "meta"]
