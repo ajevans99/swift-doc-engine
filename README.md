@@ -27,6 +27,20 @@ Selectors address headings using slugged text. Fenced code blocks can be accesse
 * Implement `DocumentStore` to back documents with your own persistence layer.
 * Replace the diff generation by adapting `SimpleDiff` or providing a custom implementation.
 
+## MarkdownLintKit
+
+`MarkdownLintKit` exposes a lightweight linter for Markdown documents. Run the
+linter on a string and inspect the returned diagnostics:
+
+```swift
+let diagnostics = MarkdownLinter.lint(markdown, config: [
+    "requiredHeadings": ["visual-design", "abilities"],
+    "allowedTags": ["prompt", "notes", "meta"]
+])
+```
+
+Custom rules can be registered via `RuleRegistry`.
+
 ## License
 
 MIT
