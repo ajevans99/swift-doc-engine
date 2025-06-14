@@ -7,7 +7,7 @@ DocEngine is a Swift package providing a small engine for reading and editing sl
 Add the package dependency to your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/example/swift-doc-engine", branch: "main")
+.package(url: "https://github.com/ajevans99/swift-doc-engine", branch: "main")
 ```
 
 Use the `DocEngine` with an in-memory store:
