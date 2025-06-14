@@ -2,7 +2,7 @@ import Markdown
 import MarkdownSupport
 
 // MARK: - Lint entry
-public final class MarkdownLinter {
+public struct MarkdownLinter {
     private let ruleRegistry: RuleRegistry
 
     public init(ruleRegistry: RuleRegistry) {

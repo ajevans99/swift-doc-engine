@@ -18,43 +18,43 @@ public struct Diagnostic: Codable, Hashable {
     }
 
     public init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        severity = try c.decode(Severity.self, forKey: .severity)
-        message = try c.decode(String.self, forKey: .message)
-        let r = try c.decode(SourceRangeCodable.self, forKey: .range)
-        range = r.range
-        ruleID = try c.decode(String.self, forKey: .ruleID)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        severity = try container.decode(Severity.self, forKey: .severity)
+        message = try container.decode(String.self, forKey: .message)
+        let decodedRange = try container.decode(SourceRangeCodable.self, forKey: .range)
+        range = decodedRange.range
+        ruleID = try container.decode(String.self, forKey: .ruleID)
     }
 
     public func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(severity, forKey: .severity)
-        try c.encode(message, forKey: .message)
-        try c.encode(SourceRangeCodable(range), forKey: .range)
-        try c.encode(ruleID, forKey: .ruleID)
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(severity, forKey: .severity)
+        try container.encode(message, forKey: .message)
+        try container.encode(SourceRangeCodable(range), forKey: .range)
+        try container.encode(ruleID, forKey: .ruleID)
     }
 }
 
 struct SourceRangeCodable: Codable {
     var range: SourceRange
-    init(_ r: SourceRange) { self.range = r }
+    init(_ range: SourceRange) { self.range = range }
     init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        let sl = try c.decode(Int.self, forKey: .startLine)
-        let sc = try c.decode(Int.self, forKey: .startColumn)
-        let el = try c.decode(Int.self, forKey: .endLine)
-        let ec = try c.decode(Int.self, forKey: .endColumn)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let startLine = try container.decode(Int.self, forKey: .startLine)
+        let startColumn = try container.decode(Int.self, forKey: .startColumn)
+        let endLine = try container.decode(Int.self, forKey: .endLine)
+        let endColumn = try container.decode(Int.self, forKey: .endColumn)
         range = SourceRange(
-            start: SourceLocation(line: sl, column: sc, source: nil),
-            end: SourceLocation(line: el, column: ec, source: nil)
+            start: SourceLocation(line: startLine, column: startColumn, source: nil),
+            end: SourceLocation(line: endLine, column: endColumn, source: nil)
         )
     }
     func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(range.lowerBound.line, forKey: .startLine)
-        try c.encode(range.lowerBound.column, forKey: .startColumn)
-        try c.encode(range.upperBound.line, forKey: .endLine)
-        try c.encode(range.upperBound.column, forKey: .endColumn)
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(range.lowerBound.line, forKey: .startLine)
+        try container.encode(range.lowerBound.column, forKey: .startColumn)
+        try container.encode(range.upperBound.line, forKey: .endLine)
+        try container.encode(range.upperBound.column, forKey: .endColumn)
     }
     enum CodingKeys: String, CodingKey {
         case startLine, startColumn, endLine, endColumn
